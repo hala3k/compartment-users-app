@@ -15,31 +15,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Backend API"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Angular Frontend"
+args = "Production Server"
 
 [[workflows.workflow]]
-name = "Backend API"
+name = "Production Server"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node server.js"
-waitForPort = 3000
-
-[workflows.workflow.metadata]
-outputType = "console"
-
-[[workflows.workflow]]
-name = "Angular Frontend"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd compartment-users-app && npm start"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
@@ -54,5 +38,10 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 36575
+localPort = 35563
 externalPort = 3001
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["node", "server.js"]
+build = ["bash", "-c", "cd compartment-users-app && npm run build"]

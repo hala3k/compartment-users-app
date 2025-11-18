@@ -1,10 +1,9 @@
 const express = require('express');
-const cors = require('cors');
+const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 5000;
 
-app.use(cors());
 app.use(express.json());
 
 const compartmentsData = [
@@ -64,9 +63,18 @@ app.get('/api/users', (req, res) => {
   }, 500);
 });
 
-app.listen(PORT, () => {
-  console.log(`Mock API server running on http://localhost:${PORT}`);
-  console.log('Available endpoints:');
+const angularDistPath = path.join(__dirname, 'compartment-users-app', 'dist', 'compartment-users-app', 'browser');
+
+app.use(express.static(angularDistPath));
+
+app.use((req, res) => {
+  res.sendFile(path.join(angularDistPath, 'index.html'));
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
+  console.log('Serving Angular app from:', angularDistPath);
+  console.log('API endpoints:');
   console.log(`  GET /api/compartments`);
   console.log(`  GET /api/users?compartment=<compartment_name>`);
 });
