@@ -1,0 +1,61 @@
+<div class="container">
+  <h2>Compartment and Users Selection</h2>
+  
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="compartment">Compartment *</label>
+      <select 
+        id="compartment" 
+        formControlName="compartment"
+        class="form-control">
+        <option value="">{{ loading ? 'Loading...' : 'Select a compartment' }}</option>
+        <option *ngFor="let compartment of compartments" [value]="compartment">
+          {{ compartment }}
+        </option>
+      </select>
+      <div class="error" *ngIf="form.get('compartment')?.invalid && form.get('compartment')?.touched">
+        Please select a compartment
+      </div>
+    </div>
+
+    <div class="form-group" *ngIf="form.get('compartment')?.value">
+      <label>Users * (Select multiple)</label>
+      <div class="users-list" *ngIf="!loadingUsers && users.length > 0">
+        <div 
+          *ngFor="let user of users" 
+          class="user-item"
+          [class.selected]="isUserSelected(user.id)"
+          (click)="toggleUser(user.id)">
+          <input 
+            type="checkbox" 
+            [checked]="isUserSelected(user.id)"
+            [id]="'user-' + user.id">
+          <label [for]="'user-' + user.id" class="user-label">
+            <strong>{{ user.name }}</strong>
+            <span class="user-email">{{ user.email }}</span>
+          </label>
+        </div>
+      </div>
+      <div *ngIf="loadingUsers" class="loading">Loading users...</div>
+      <div *ngIf="!loadingUsers && users.length === 0" class="no-data">
+        No users found for this compartment
+      </div>
+      <div class="error" *ngIf="form.get('selectedUsers')?.invalid && form.get('selectedUsers')?.touched">
+        Please select at least one user
+      </div>
+    </div>
+
+    <button 
+      type="submit" 
+      class="btn-submit"
+      [disabled]="form.invalid || loading || loadingUsers">
+      Submit
+    </button>
+  </form>
+
+  <div class="form-value" *ngIf="form.value.compartment">
+    <h3>Current Selection:</h3>
+    <p><strong>Compartment:</strong> {{ form.value.compartment }}</p>
+    <p><strong>Selected Users:</strong> {{ form.value.selectedUsers.length }} user(s)</p>
+  </div>
+</div>
