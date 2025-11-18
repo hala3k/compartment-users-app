@@ -1,7 +1,7 @@
 <div class="container">
   <h2>Compartment and Users Selection</h2>
   
-  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <form [formGroup]="form">
     <div class="form-group">
       <label for="compartment">Compartment *</label>
       <select 
@@ -44,13 +44,6 @@
         Please select at least one user
       </div>
     </div>
-
-    <button 
-      type="submit" 
-      class="btn-submit"
-      [disabled]="form.invalid || loading || loadingUsers">
-      Submit
-    </button>
   </form>
 
   <div class="form-value" *ngIf="form.value.compartment">

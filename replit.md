@@ -13,6 +13,8 @@ Angular 18 application with dependent dropdown fields for selecting compartments
   - Express serves both API and Angular static files on port 5000
   - Deployment configured for Replit Autoscale
   - Single unified server for both frontend and backend
+- **Removed submit button** - Form now just displays selections without a submit action
+- Created GitHub repository at https://github.com/hala3k/compartment-users-app
 
 ## Project Architecture
 
@@ -46,7 +48,7 @@ Angular 18 application with dependent dropdown fields for selecting compartments
   - `GET /*`: Serves Angular app (catch-all for client-side routing)
 
 ### User Interface
-The interface contains compartment dropdown that loads on component init, and users multi-select that only appears and loads after a compartment is selected. Users can select multiple users via checkboxes.
+The interface contains compartment dropdown that loads on component init, and users multi-select that only appears and loads after a compartment is selected. Users can select multiple users via checkboxes. The form displays current selections in real-time without requiring a submit action.
 
 ## Key Features
 1. Dependent form fields with reactive forms

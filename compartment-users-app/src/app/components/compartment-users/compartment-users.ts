@@ -101,24 +101,4 @@ export class CompartmentUsers implements OnInit {
     const selectedUsers = this.form.get('selectedUsers')?.value || [];
     return selectedUsers.includes(userId);
   }
-
-  onSubmit(): void {
-    Object.keys(this.form.controls).forEach(key => {
-      this.form.get(key)?.markAsTouched();
-    });
-    
-    if (this.form.valid) {
-      const formValue = this.form.value;
-      const selectedUserObjects = this.users.filter(user => 
-        formValue.selectedUsers.includes(user.id)
-      );
-      
-      console.log('Form submitted:', {
-        compartment: formValue.compartment,
-        selectedUsers: selectedUserObjects
-      });
-      
-      alert(`Selected compartment: ${formValue.compartment}\nSelected users: ${selectedUserObjects.map(u => u.name).join(', ')}`);
-    }
-  }
 }
