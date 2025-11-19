@@ -4,24 +4,31 @@
   <form [formGroup]="form">
     <div class="form-group">
       <label for="compartment">Compartment *</label>
-      <input 
-        type="text" 
-        class="search-input" 
-        placeholder="Search compartments..."
-        [(ngModel)]="compartmentSearchTerm"
-        [ngModelOptions]="{standalone: true}"
-        (ngModelChange)="filterCompartments()">
-      <select 
-        id="compartment" 
-        formControlName="compartment"
-        class="form-control">
-        <option value="">{{ loading ? 'Loading...' : 'Select a compartment' }}</option>
-        <option *ngFor="let compartment of filteredCompartments" [value]="compartment">
-          {{ compartment }}
-        </option>
-      </select>
-      <div class="search-results" *ngIf="compartmentSearchTerm && filteredCompartments.length === 0">
-        No compartments found
+      <div class="autocomplete-wrapper">
+        <input 
+          type="text" 
+          id="compartment"
+          class="autocomplete-input" 
+          placeholder="Search and select a compartment..."
+          [(ngModel)]="compartmentSearchTerm"
+          [ngModelOptions]="{standalone: true}"
+          (ngModelChange)="filterCompartments()"
+          (focus)="onCompartmentFocus()"
+          (blur)="onCompartmentBlur()"
+          (keydown)="onCompartmentKeyDown($event)"
+          [disabled]="loading"
+          autocomplete="off">
+        <div class="autocomplete-dropdown" *ngIf="showCompartmentDropdown && !loading">
+          <div 
+            *ngFor="let compartment of filteredCompartments" 
+            class="autocomplete-item"
+            (click)="selectCompartment(compartment)">
+            {{ compartment }}
+          </div>
+          <div class="autocomplete-no-results" *ngIf="filteredCompartments.length === 0">
+            No compartments found
+          </div>
+        </div>
       </div>
       <div class="error" *ngIf="form.get('compartment')?.invalid && form.get('compartment')?.touched">
         Please select a compartment

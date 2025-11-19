@@ -20,6 +20,7 @@ export class CompartmentUsers implements OnInit {
   loadingUsers = false;
   compartmentSearchTerm = '';
   userSearchTerm = '';
+  showCompartmentDropdown = false;
 
   constructor(
     private fb: FormBuilder,
@@ -117,6 +118,46 @@ export class CompartmentUsers implements OnInit {
       this.filteredCompartments = this.compartments.filter(compartment =>
         compartment.toLowerCase().includes(searchTerm)
       );
+    }
+    this.showCompartmentDropdown = true;
+  }
+
+  selectCompartment(compartment: string): void {
+    this.compartmentSearchTerm = compartment;
+    this.form.patchValue({ compartment: compartment });
+    this.showCompartmentDropdown = false;
+  }
+
+  onCompartmentFocus(): void {
+    this.showCompartmentDropdown = true;
+    this.filterCompartments();
+  }
+
+  onCompartmentBlur(): void {
+    setTimeout(() => {
+      this.showCompartmentDropdown = false;
+      const exactMatch = this.compartments.find(
+        c => c.toLowerCase() === this.compartmentSearchTerm.trim().toLowerCase()
+      );
+      if (exactMatch && this.form.get('compartment')?.value !== exactMatch) {
+        this.selectCompartment(exactMatch);
+      } else if (this.compartmentSearchTerm && !exactMatch) {
+        this.compartmentSearchTerm = this.form.get('compartment')?.value || '';
+      }
+    }, 200);
+  }
+
+  onCompartmentKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && this.filteredCompartments.length > 0) {
+      event.preventDefault();
+      const exactMatch = this.compartments.find(
+        c => c.toLowerCase() === this.compartmentSearchTerm.trim().toLowerCase()
+      );
+      if (exactMatch) {
+        this.selectCompartment(exactMatch);
+      } else {
+        this.selectCompartment(this.filteredCompartments[0]);
+      }
     }
   }
 
