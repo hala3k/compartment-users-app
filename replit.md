@@ -5,8 +5,11 @@ Angular 18 application with dependent dropdown fields for selecting compartments
 
 ## Recent Changes (November 19, 2025)
 - **Added search functionality** - Users can now filter compartments and users using search inputs
-  - Compartment search: Filter compartments by name (case-insensitive)
-  - User search: Filter users by name or email (case-insensitive)
+  - **Compartment autocomplete**: Single input field with dropdown suggestions (case-insensitive)
+    - Type to filter compartments in real-time
+    - Click to select from dropdown, or press Enter to select first match
+    - Supports exact match selection on blur/tab
+  - **User search**: Filter users by name or email (case-insensitive)
   - Search fields automatically clear when switching compartments for better UX
 
 ## Previous Changes (November 18, 2025)
@@ -55,10 +58,13 @@ Angular 18 application with dependent dropdown fields for selecting compartments
 
 ### User Interface
 The interface contains:
-- **Compartment field**: Search input for filtering + dropdown that loads on component init
+- **Compartment field**: Autocomplete input with dropdown suggestions
+  - Type to search and filter compartments in real-time
+  - Select by clicking dropdown item, pressing Enter, or typing exact match
+  - Dropdown shows all options on focus, filters as you type
 - **Users field**: Search input for filtering + multi-select that only appears after a compartment is selected
 - Users can select multiple users via checkboxes
-- Both fields have real-time search/filter functionality (case-insensitive)
+- Real-time search/filter functionality for both fields (case-insensitive)
 - The form displays current selections in real-time without requiring a submit action
 
 ## Key Features
