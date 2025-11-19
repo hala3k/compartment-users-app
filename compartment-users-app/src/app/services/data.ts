@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export interface User {
+export interface UserGroup {
   id: string;
   name: string;
   email: string;
@@ -23,7 +23,7 @@ export class DataService {
     return this.http.get<string[]>(`${this.apiUrl}/compartments`);
   }
 
-  getUsersByCompartment(compartment: string): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/users?compartment=${compartment}`);
+  getUsersByCompartment(compartment: string): Observable<UserGroup[]> {
+    return this.http.get<UserGroup[]>(`${this.apiUrl}/users?compartment=${compartment}`);
   }
 }

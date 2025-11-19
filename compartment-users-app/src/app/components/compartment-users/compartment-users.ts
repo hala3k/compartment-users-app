@@ -1,7 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { DataService, User } from '../../services/data';
+import { DataService, UserGroup } from '../../services/data';
+import { ExternalSyncService, FormStateDto } from '../../services/external-sync';
+import { debounceTime, distinctUntilChanged, filter, tap, finalize, switchMap, catchError } from 'rxjs/operators';
+import { Subscription, of } from 'rxjs';
 
 @Component({
   selector: 'app-compartment-users',
@@ -10,21 +13,25 @@ import { DataService, User } from '../../services/data';
   templateUrl: './compartment-users.html',
   styleUrl: './compartment-users.css',
 })
-export class CompartmentUsers implements OnInit {
+export class CompartmentUsers implements OnInit, OnDestroy {
   form: FormGroup;
   compartments: string[] = [];
   filteredCompartments: string[] = [];
-  users: User[] = [];
-  filteredUsers: User[] = [];
+  users: UserGroup[] = [];
+  filteredUsers: UserGroup[] = [];
   loading = false;
   loadingUsers = false;
   compartmentSearchTerm = '';
   userSearchTerm = '';
   showCompartmentDropdown = false;
+  private syncSubscription?: Subscription;
+  isSyncing = false;
+  syncStatus: string = '';
 
   constructor(
     private fb: FormBuilder,
-    private dataService: DataService
+    private dataService: DataService,
+    private syncService: ExternalSyncService
   ) {
     this.form = this.fb.group({
       compartment: ['', Validators.required],
@@ -44,6 +51,57 @@ export class CompartmentUsers implements OnInit {
   ngOnInit(): void {
     this.loadCompartments();
     this.setupCompartmentListener();
+    this.setupFormSync();
+  }
+
+  ngOnDestroy(): void {
+    if (this.syncSubscription) {
+      this.syncSubscription.unsubscribe();
+    }
+  }
+
+  setupFormSync(): void {
+    this.syncSubscription = this.form.valueChanges.pipe(
+      filter(() => this.form.valid),
+      debounceTime(500),
+      distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
+      tap(() => {
+        this.isSyncing = true;
+        this.syncStatus = 'Syncing...';
+      }),
+      switchMap((formValue) => {
+        const formState: FormStateDto = {
+          compartment: formValue.compartment,
+          selectedUsers: formValue.selectedUsers,
+          timestamp: new Date().toISOString()
+        };
+        return this.syncService.syncFormState(formState).pipe(
+          finalize(() => {
+            this.isSyncing = false;
+          }),
+          catchError((error) => {
+            console.error('Sync error:', error);
+            return of({ success: false, error: error.message });
+          })
+        );
+      })
+    ).subscribe({
+      next: (response: any) => {
+        if (response.success !== false) {
+          this.syncStatus = 'Synced successfully';
+          this.syncService.lastSyncStatus = 'success';
+          setTimeout(() => {
+            this.syncStatus = '';
+          }, 2000);
+        } else {
+          this.syncStatus = 'Sync failed';
+          this.syncService.lastSyncStatus = 'error';
+          setTimeout(() => {
+            this.syncStatus = '';
+          }, 3000);
+        }
+      }
+    });
   }
 
   loadCompartments(): void {
@@ -91,13 +149,13 @@ export class CompartmentUsers implements OnInit {
     });
   }
 
-  toggleUser(user: User): void {
-    const currentUsers: User[] = this.form.get('selectedUsers')?.value || [];
-    const index = currentUsers.findIndex((u: User) => u.id === user.id);
+  toggleUser(user: UserGroup): void {
+    const currentUsers: UserGroup[] = this.form.get('selectedUsers')?.value || [];
+    const index = currentUsers.findIndex((u: UserGroup) => u.id === user.id);
     
-    let updatedUsers: User[];
+    let updatedUsers: UserGroup[];
     if (index > -1) {
-      updatedUsers = currentUsers.filter((u: User) => u.id !== user.id);
+      updatedUsers = currentUsers.filter((u: UserGroup) => u.id !== user.id);
     } else {
       updatedUsers = [...currentUsers, user];
     }
@@ -105,9 +163,15 @@ export class CompartmentUsers implements OnInit {
     this.form.patchValue({ selectedUsers: updatedUsers });
   }
 
-  isUserSelected(user: User): boolean {
-    const selectedUsers: User[] = this.form.get('selectedUsers')?.value || [];
-    return selectedUsers.some((u: User) => u.id === user.id);
+  isUserSelected(user: UserGroup): boolean {
+    const selectedUsers: UserGroup[] = this.form.get('selectedUsers')?.value || [];
+    return selectedUsers.some((u: UserGroup) => u.id === user.id);
+  }
+
+  removeUser(user: UserGroup): void {
+    const currentUsers: UserGroup[] = this.form.get('selectedUsers')?.value || [];
+    const updatedUsers = currentUsers.filter((u: UserGroup) => u.id !== user.id);
+    this.form.patchValue({ selectedUsers: updatedUsers });
   }
 
   filterCompartments(): void {

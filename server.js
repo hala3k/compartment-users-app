@@ -1,5 +1,7 @@
 const express = require('express');
 const path = require('path');
+const https = require('https');
+const http = require('http');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -63,6 +65,87 @@ app.get('/api/users', (req, res) => {
   setTimeout(() => {
     res.json(users);
   }, 500);
+});
+
+app.post('/api/sync', async (req, res) => {
+  const formState = req.body;
+  
+  console.log('\n=== Form State Sync ===');
+  console.log('Timestamp:', formState.timestamp);
+  console.log('Compartment:', formState.compartment);
+  console.log('Selected Users:', formState.selectedUsers?.length || 0);
+  console.log('User Details:', JSON.stringify(formState.selectedUsers, null, 2));
+  
+  const externalApiUrl = process.env.EXTERNAL_API_URL;
+  
+  if (externalApiUrl) {
+    console.log(`Forwarding to external API: ${externalApiUrl}`);
+    
+    try {
+      const url = new URL(externalApiUrl);
+      const protocol = url.protocol === 'https:' ? https : http;
+      const postData = JSON.stringify(formState);
+      
+      const options = {
+        hostname: url.hostname,
+        port: url.port || (url.protocol === 'https:' ? 443 : 80),
+        path: url.pathname + url.search,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      };
+      
+      const forwardRequest = new Promise((resolve, reject) => {
+        const proxyReq = protocol.request(options, (proxyRes) => {
+          let data = '';
+          proxyRes.on('data', chunk => data += chunk);
+          proxyRes.on('end', () => {
+            if (proxyRes.statusCode >= 200 && proxyRes.statusCode < 300) {
+              resolve({ success: true, statusCode: proxyRes.statusCode, data });
+            } else {
+              reject(new Error(`External API returned status ${proxyRes.statusCode}`));
+            }
+          });
+        });
+        
+        proxyReq.on('error', reject);
+        proxyReq.write(postData);
+        proxyReq.end();
+      });
+      
+      await forwardRequest;
+      console.log('Successfully forwarded to external API');
+      console.log('======================\n');
+      
+      res.json({ 
+        success: true, 
+        message: 'Form state synced successfully to external API',
+        receivedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error forwarding to external API:', error.message);
+      console.log('======================\n');
+      
+      res.status(500).json({
+        success: false,
+        message: 'Failed to sync with external API',
+        error: error.message
+      });
+    }
+  } else {
+    console.log('No EXTERNAL_API_URL configured, logging only');
+    console.log('======================\n');
+    
+    setTimeout(() => {
+      res.json({ 
+        success: true, 
+        message: 'Form state logged successfully (no external API configured)',
+        receivedAt: new Date().toISOString()
+      });
+    }, 200);
+  }
 });
 
 const angularDistPath = path.join(__dirname, 'compartment-users-app', 'dist', 'compartment-users-app', 'browser');

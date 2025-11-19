@@ -37,6 +37,16 @@
 
     <div class="form-group" *ngIf="form.get('compartment')?.value">
       <label>Users * (Select multiple)</label>
+      
+      <div class="selected-chips" *ngIf="form.value.selectedUsers.length > 0">
+        <div class="chip" *ngFor="let user of form.value.selectedUsers">
+          <span class="chip-text">{{ user.name }}</span>
+          <button type="button" class="chip-remove" (click)="removeUser(user)" title="Remove {{ user.name }}">
+            ×
+          </button>
+        </div>
+      </div>
+      
       <input 
         type="text" 
         class="search-input" 
@@ -74,6 +84,12 @@
       </div>
     </div>
   </form>
+
+  <div class="sync-status" *ngIf="syncStatus">
+    <span class="sync-indicator" [class.syncing]="isSyncing" [class.success]="syncStatus.includes('success')" [class.error]="syncStatus.includes('failed')">
+      {{ syncStatus }}
+    </span>
+  </div>
 
   <div class="form-value" *ngIf="form.value.compartment">
     <h3>Current Selection:</h3>
