@@ -11,6 +11,10 @@ Angular 18 application with dependent dropdown fields for selecting compartments
     - Supports exact match selection on blur/tab
   - **User search**: Filter users by name or email (case-insensitive)
   - Search fields automatically clear when switching compartments for better UX
+- **Enhanced user data structure** - Form now stores complete user objects instead of just IDs
+  - User objects include: id, name, email, isGroup, organisationName, organisationId
+  - Display shows user name, ID, and email for each selection
+  - Added support for both individual users and groups (isGroup flag)
 
 ## Previous Changes (November 18, 2025)
 - Created Angular 18 project with standalone components
@@ -49,11 +53,11 @@ Angular 18 application with dependent dropdown fields for selecting compartments
 - **Port**: 5000 (production and development)
 - **Features**:
   - Serves Angular production build as static files
-  - API endpoints with mock data
+  - API endpoints with mock data including users and groups
   - Catch-all route for Angular routing support
 - **Endpoints**:
   - `GET /api/compartments`: Returns array of compartment names
-  - `GET /api/users?compartment=<name>`: Returns array of user objects for the compartment
+  - `GET /api/users?compartment=<name>`: Returns array of user objects (with id, name, email, isGroup, organisationName, organisationId)
   - `GET /*`: Serves Angular app (catch-all for client-side routing)
 
 ### User Interface
