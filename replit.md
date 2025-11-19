@@ -3,7 +3,13 @@
 ## Overview
 Angular 18 application with dependent dropdown fields for selecting compartments and users. The second field (users) is dependent on the first field (compartment) selection. Now configured for production deployment on Replit Autoscale.
 
-## Recent Changes (November 18, 2025)
+## Recent Changes (November 19, 2025)
+- **Added search functionality** - Users can now filter compartments and users using search inputs
+  - Compartment search: Filter compartments by name (case-insensitive)
+  - User search: Filter users by name or email (case-insensitive)
+  - Search fields automatically clear when switching compartments for better UX
+
+## Previous Changes (November 18, 2025)
 - Created Angular 18 project with standalone components
 - Implemented compartment-users component with reactive forms
 - Created data service for API calls
@@ -48,16 +54,22 @@ Angular 18 application with dependent dropdown fields for selecting compartments
   - `GET /*`: Serves Angular app (catch-all for client-side routing)
 
 ### User Interface
-The interface contains compartment dropdown that loads on component init, and users multi-select that only appears and loads after a compartment is selected. Users can select multiple users via checkboxes. The form displays current selections in real-time without requiring a submit action.
+The interface contains:
+- **Compartment field**: Search input for filtering + dropdown that loads on component init
+- **Users field**: Search input for filtering + multi-select that only appears after a compartment is selected
+- Users can select multiple users via checkboxes
+- Both fields have real-time search/filter functionality (case-insensitive)
+- The form displays current selections in real-time without requiring a submit action
 
 ## Key Features
 1. Dependent form fields with reactive forms
 2. Multi-select users with checkbox interface
-3. Custom array validation (minimum 1 user required)
-4. Loading states for both API calls
-5. Form validation with proper error display
-6. Clean, responsive UI with visual feedback
-7. Production-ready deployment configuration
+3. **Real-time search functionality** for both compartments and users
+4. Custom array validation (minimum 1 user required)
+5. Loading states for both API calls
+6. Form validation with proper error display
+7. Clean, responsive UI with visual feedback
+8. Production-ready deployment configuration
 
 ## Development
 - Run `npm start` in `compartment-users-app/` for Angular dev server (port 4200)
