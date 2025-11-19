@@ -4,15 +4,25 @@
   <form [formGroup]="form">
     <div class="form-group">
       <label for="compartment">Compartment *</label>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Search compartments..."
+        [(ngModel)]="compartmentSearchTerm"
+        [ngModelOptions]="{standalone: true}"
+        (ngModelChange)="filterCompartments()">
       <select 
         id="compartment" 
         formControlName="compartment"
         class="form-control">
         <option value="">{{ loading ? 'Loading...' : 'Select a compartment' }}</option>
-        <option *ngFor="let compartment of compartments" [value]="compartment">
+        <option *ngFor="let compartment of filteredCompartments" [value]="compartment">
           {{ compartment }}
         </option>
       </select>
+      <div class="search-results" *ngIf="compartmentSearchTerm && filteredCompartments.length === 0">
+        No compartments found
+      </div>
       <div class="error" *ngIf="form.get('compartment')?.invalid && form.get('compartment')?.touched">
         Please select a compartment
       </div>
@@ -20,9 +30,17 @@
 
     <div class="form-group" *ngIf="form.get('compartment')?.value">
       <label>Users * (Select multiple)</label>
-      <div class="users-list" *ngIf="!loadingUsers && users.length > 0">
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Search users by name or email..."
+        [(ngModel)]="userSearchTerm"
+        [ngModelOptions]="{standalone: true}"
+        (ngModelChange)="filterUsers()"
+        *ngIf="!loadingUsers && users.length > 0">
+      <div class="users-list" *ngIf="!loadingUsers && filteredUsers.length > 0">
         <div 
-          *ngFor="let user of users" 
+          *ngFor="let user of filteredUsers" 
           class="user-item"
           [class.selected]="isUserSelected(user.id)"
           (click)="toggleUser(user.id)">
@@ -35,6 +53,9 @@
             <span class="user-email">{{ user.email }}</span>
           </label>
         </div>
+      </div>
+      <div class="search-results" *ngIf="!loadingUsers && userSearchTerm && filteredUsers.length === 0 && users.length > 0">
+        No users found matching your search
       </div>
       <div *ngIf="loadingUsers" class="loading">Loading users...</div>
       <div *ngIf="!loadingUsers && users.length === 0" class="no-data">

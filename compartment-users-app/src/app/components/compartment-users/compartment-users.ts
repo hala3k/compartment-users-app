@@ -1,21 +1,25 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DataService, User } from '../../services/data';
 
 @Component({
   selector: 'app-compartment-users',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './compartment-users.html',
   styleUrl: './compartment-users.css',
 })
 export class CompartmentUsers implements OnInit {
   form: FormGroup;
   compartments: string[] = [];
+  filteredCompartments: string[] = [];
   users: User[] = [];
+  filteredUsers: User[] = [];
   loading = false;
   loadingUsers = false;
+  compartmentSearchTerm = '';
+  userSearchTerm = '';
 
   constructor(
     private fb: FormBuilder,
@@ -47,6 +51,7 @@ export class CompartmentUsers implements OnInit {
     this.dataService.getCompartments().subscribe({
       next: (data) => {
         this.compartments = data;
+        this.filteredCompartments = data;
         this.loading = false;
         this.form.get('compartment')?.enable();
       },
@@ -71,9 +76,11 @@ export class CompartmentUsers implements OnInit {
 
   loadUsers(compartment: string): void {
     this.loadingUsers = true;
+    this.userSearchTerm = '';
     this.dataService.getUsersByCompartment(compartment).subscribe({
       next: (data) => {
         this.users = data;
+        this.filteredUsers = data;
         this.loadingUsers = false;
       },
       error: (error) => {
@@ -100,5 +107,28 @@ export class CompartmentUsers implements OnInit {
   isUserSelected(userId: number): boolean {
     const selectedUsers = this.form.get('selectedUsers')?.value || [];
     return selectedUsers.includes(userId);
+  }
+
+  filterCompartments(): void {
+    if (!this.compartmentSearchTerm.trim()) {
+      this.filteredCompartments = this.compartments;
+    } else {
+      const searchTerm = this.compartmentSearchTerm.toLowerCase();
+      this.filteredCompartments = this.compartments.filter(compartment =>
+        compartment.toLowerCase().includes(searchTerm)
+      );
+    }
+  }
+
+  filterUsers(): void {
+    if (!this.userSearchTerm.trim()) {
+      this.filteredUsers = this.users;
+    } else {
+      const searchTerm = this.userSearchTerm.toLowerCase();
+      this.filteredUsers = this.users.filter(user =>
+        user.name.toLowerCase().includes(searchTerm) ||
+        user.email.toLowerCase().includes(searchTerm)
+      );
+    }
   }
 }
