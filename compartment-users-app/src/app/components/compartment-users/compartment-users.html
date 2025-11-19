@@ -49,14 +49,15 @@
         <div 
           *ngFor="let user of filteredUsers" 
           class="user-item"
-          [class.selected]="isUserSelected(user.id)"
-          (click)="toggleUser(user.id)">
+          [class.selected]="isUserSelected(user)"
+          (click)="toggleUser(user)">
           <input 
             type="checkbox" 
-            [checked]="isUserSelected(user.id)"
+            [checked]="isUserSelected(user)"
             [id]="'user-' + user.id">
           <label [for]="'user-' + user.id" class="user-label">
             <strong>{{ user.name }}</strong>
+            <span class="user-id">ID: {{ user.id }}</span>
             <span class="user-email">{{ user.email }}</span>
           </label>
         </div>

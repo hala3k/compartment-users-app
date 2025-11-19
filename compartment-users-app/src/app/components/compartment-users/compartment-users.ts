@@ -91,23 +91,23 @@ export class CompartmentUsers implements OnInit {
     });
   }
 
-  toggleUser(userId: number): void {
-    const currentUsers = this.form.get('selectedUsers')?.value || [];
-    const index = currentUsers.indexOf(userId);
+  toggleUser(user: User): void {
+    const currentUsers: User[] = this.form.get('selectedUsers')?.value || [];
+    const index = currentUsers.findIndex((u: User) => u.id === user.id);
     
-    let updatedUsers: number[];
+    let updatedUsers: User[];
     if (index > -1) {
-      updatedUsers = currentUsers.filter((id: number) => id !== userId);
+      updatedUsers = currentUsers.filter((u: User) => u.id !== user.id);
     } else {
-      updatedUsers = [...currentUsers, userId];
+      updatedUsers = [...currentUsers, user];
     }
     
     this.form.patchValue({ selectedUsers: updatedUsers });
   }
 
-  isUserSelected(userId: number): boolean {
-    const selectedUsers = this.form.get('selectedUsers')?.value || [];
-    return selectedUsers.includes(userId);
+  isUserSelected(user: User): boolean {
+    const selectedUsers: User[] = this.form.get('selectedUsers')?.value || [];
+    return selectedUsers.some((u: User) => u.id === user.id);
   }
 
   filterCompartments(): void {

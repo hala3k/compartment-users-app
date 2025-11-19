@@ -16,30 +16,32 @@ const compartmentsData = [
 
 const usersData = {
   'Engineering': [
-    { id: 1, name: 'John Doe', email: 'john.doe@company.com' },
-    { id: 2, name: 'Jane Smith', email: 'jane.smith@company.com' },
-    { id: 3, name: 'Bob Wilson', email: 'bob.wilson@company.com' },
-    { id: 4, name: 'Alice Johnson', email: 'alice.johnson@company.com' }
+    { id: 'user-1', name: 'John Doe', email: 'john.doe@company.com', isGroup: false, organisationName: 'Tech Corp', organisationId: 'org-1' },
+    { id: 'user-2', name: 'Jane Smith', email: 'jane.smith@company.com', isGroup: false, organisationName: 'Tech Corp', organisationId: 'org-1' },
+    { id: 'group-1', name: 'Dev Team', email: 'dev-team@company.com', isGroup: true, organisationName: 'Tech Corp', organisationId: 'org-1' },
+    { id: 'user-3', name: 'Bob Wilson', email: 'bob.wilson@company.com', isGroup: false, organisationName: 'Tech Corp', organisationId: 'org-1' },
+    { id: 'user-4', name: 'Alice Johnson', email: 'alice.johnson@company.com', isGroup: false, organisationName: 'Tech Corp', organisationId: 'org-1' }
   ],
   'Marketing': [
-    { id: 5, name: 'Sarah Brown', email: 'sarah.brown@company.com' },
-    { id: 6, name: 'Michael Davis', email: 'michael.davis@company.com' },
-    { id: 7, name: 'Emma Taylor', email: 'emma.taylor@company.com' }
+    { id: 'user-5', name: 'Sarah Brown', email: 'sarah.brown@company.com', isGroup: false, organisationName: 'Marketing Inc', organisationId: 'org-2' },
+    { id: 'user-6', name: 'Michael Davis', email: 'michael.davis@company.com', isGroup: false, organisationName: 'Marketing Inc', organisationId: 'org-2' },
+    { id: 'group-2', name: 'Marketing Team', email: 'marketing-team@company.com', isGroup: true, organisationName: 'Marketing Inc', organisationId: 'org-2' },
+    { id: 'user-7', name: 'Emma Taylor', email: 'emma.taylor@company.com', isGroup: false, organisationName: 'Marketing Inc', organisationId: 'org-2' }
   ],
   'Sales': [
-    { id: 8, name: 'David Lee', email: 'david.lee@company.com' },
-    { id: 9, name: 'Laura Martinez', email: 'laura.martinez@company.com' },
-    { id: 10, name: 'Chris Anderson', email: 'chris.anderson@company.com' },
-    { id: 11, name: 'Sophie White', email: 'sophie.white@company.com' }
+    { id: 'user-8', name: 'David Lee', email: 'david.lee@company.com', isGroup: false, organisationName: 'Sales Pro', organisationId: 'org-3' },
+    { id: 'user-9', name: 'Laura Martinez', email: 'laura.martinez@company.com', isGroup: false, organisationName: 'Sales Pro', organisationId: 'org-3' },
+    { id: 'user-10', name: 'Chris Anderson', email: 'chris.anderson@company.com', isGroup: false, organisationName: 'Sales Pro', organisationId: 'org-3' },
+    { id: 'user-11', name: 'Sophie White', email: 'sophie.white@company.com', isGroup: false, organisationName: 'Sales Pro', organisationId: 'org-3' }
   ],
   'Human Resources': [
-    { id: 12, name: 'Rachel Green', email: 'rachel.green@company.com' },
-    { id: 13, name: 'Tom Harris', email: 'tom.harris@company.com' }
+    { id: 'user-12', name: 'Rachel Green', email: 'rachel.green@company.com', isGroup: false, organisationName: 'HR Solutions', organisationId: 'org-4' },
+    { id: 'user-13', name: 'Tom Harris', email: 'tom.harris@company.com', isGroup: false, organisationName: 'HR Solutions', organisationId: 'org-4' }
   ],
   'Finance': [
-    { id: 14, name: 'Kevin Miller', email: 'kevin.miller@company.com' },
-    { id: 15, name: 'Lisa Thompson', email: 'lisa.thompson@company.com' },
-    { id: 16, name: 'Mark Wilson', email: 'mark.wilson@company.com' }
+    { id: 'user-14', name: 'Kevin Miller', email: 'kevin.miller@company.com', isGroup: false, organisationName: 'Finance Group', organisationId: 'org-5' },
+    { id: 'user-15', name: 'Lisa Thompson', email: 'lisa.thompson@company.com', isGroup: false, organisationName: 'Finance Group', organisationId: 'org-5' },
+    { id: 'user-16', name: 'Mark Wilson', email: 'mark.wilson@company.com', isGroup: false, organisationName: 'Finance Group', organisationId: 'org-5' }
   ]
 };
 

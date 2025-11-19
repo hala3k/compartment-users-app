@@ -3,9 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
+  isGroup: boolean;
+  organisationName: string;
+  organisationId: string;
 }
 
 @Injectable({
