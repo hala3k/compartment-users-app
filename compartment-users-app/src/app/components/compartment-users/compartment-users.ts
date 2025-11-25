@@ -1,42 +1,86 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { DataService, UserGroup } from '../../services/data';
-import { ExternalSyncService, FormStateDto } from '../../services/external-sync';
-import { debounceTime, distinctUntilChanged, filter, tap, finalize, switchMap, catchError } from 'rxjs/operators';
-import { Subscription, of } from 'rxjs';
+
+import { AfterViewInit, Component, inject, OnInit } from '@angular/core';
+import { UserGroup } from '@asigno-workspace/shared/domain';
+import { TranslateService } from '@ngx-translate/core'; ``
+import { FormControlStringComponent } from 'libs/asigno-schema-form-widgets/forms-ddcm/components/form-controls/form-controls-string/form-controls-string.component';
+import { UserGroupControllerService, OrganisationControllerService } from '@asigno-workspace/shared/domain'
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { SelectWidget } from 'ngx-schema-form';
+import { UserSignalStore } from '@asigno-workspace/shared/store';
+import { or } from 'ajv/dist/compile/codegen';
+import { Subscription } from 'rxjs';
+import { UserService } from '@asigno-workspace/shared/services';
+import { GnmUserGroupService } from '@asigno-forms/services/gnm-user-groups.service';
+
 
 @Component({
-  selector: 'app-compartment-users',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
-  templateUrl: './compartment-users.html',
-  styleUrl: './compartment-users.css',
+  selector: 'app-form-controls-rar-signature',
+  templateUrl: './form-controls-gnm-data-assignment.component.html',
+  styleUrls: ['./form-controls-gnm-data-assignment.component.scss']
 })
-export class CompartmentUsers implements OnInit, OnDestroy {
-  form: FormGroup;
+export class FormControlsGnmDataAssignmentComponent extends SelectWidget implements OnInit {
+
+  form!: FormGroup;
   compartments: string[] = [];
   filteredCompartments: string[] = [];
   users: UserGroup[] = [];
   filteredUsers: UserGroup[] = [];
   loading = false;
   loadingUsers = false;
+  selectedCompartment: string = '';
   compartmentSearchTerm = '';
   userSearchTerm = '';
+  parentGroupPath = "partygnm";
   showCompartmentDropdown = false;
-  private syncSubscription?: Subscription;
-  isSyncing = false;
-  syncStatus: string = '';
+  subscriptions: Subscription[] = [];
+  isReadOnly = false;
 
-  constructor(
+
+  private readonly userStore = inject(UserSignalStore);
+
+
+  constructor(private translateService: TranslateService,
     private fb: FormBuilder,
-    private dataService: DataService,
-    private syncService: ExternalSyncService
+    private userGroupControllerService: UserGroupControllerService,
+    private organisationControllerService: OrganisationControllerService,
+    private userService: UserService,
+    private gnmUserGroupService: GnmUserGroupService,
   ) {
+    super();
+
+    this.subscriptions.push(this.organisationControllerService.getMyOrganisationUsingGET().subscribe(organization => {
+
+      if (organization.name === undefined || organization.name === '') {
+        this.userService.getCurrentTenants().then(result => {
+          this.parentGroupPath = result.currentSubTenant.value.substring(0, result.currentSubTenant.value.lastIndexOf('/'));
+        });
+      }
+      else {
+        this.parentGroupPath = organization.owner?.id.substring(0, organization.owner.id.lastIndexOf('/'));
+      }
+      this.loadCompartments();
+    }));
+
+
+
     this.form = this.fb.group({
       compartment: ['', Validators.required],
       selectedUsers: [[], [Validators.required, this.minLengthArray(1)]]
     });
+  }
+
+
+  ngOnInit(): void {
+
+
+    const currentSubTenant = this.userStore.currentSubTenant()
+    const currentTenant = this.userStore.currentTenant()
+    const fullSubtenatPath = currentTenant + "/" + currentSubTenant
+
+    this.isReadOnly = this.formProperty.value.superiorGroup && !currentSubTenant.includes("COMISARIAT_GENERAL") && (this.formProperty.value.superiorGroup.includes(fullSubtenatPath) || this.formProperty.value.compartment == fullSubtenatPath)
+
+    if(!this.isReadOnly)
+      this.setupCompartmentListener();
   }
 
   minLengthArray(min: number) {
@@ -48,83 +92,27 @@ export class CompartmentUsers implements OnInit, OnDestroy {
     };
   }
 
-  ngOnInit(): void {
-    this.loadCompartments();
-    this.setupCompartmentListener();
-    this.setupFormSync();
-  }
-
-  ngOnDestroy(): void {
-    if (this.syncSubscription) {
-      this.syncSubscription.unsubscribe();
-    }
-  }
-
-  setupFormSync(): void {
-    this.syncSubscription = this.form.valueChanges.pipe(
-      filter(() => this.form.valid),
-      debounceTime(500),
-      distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
-      tap(() => {
-        this.isSyncing = true;
-        this.syncStatus = 'Syncing...';
-      }),
-      switchMap((formValue) => {
-        const formState: FormStateDto = {
-          compartment: formValue.compartment,
-          selectedUsers: formValue.selectedUsers,
-          timestamp: new Date().toISOString()
-        };
-        return this.syncService.syncFormState(formState).pipe(
-          finalize(() => {
-            this.isSyncing = false;
-          }),
-          catchError((error) => {
-            console.error('Sync error:', error);
-            return of({ success: false, error: error.message });
-          })
-        );
-      })
-    ).subscribe({
-      next: (response: any) => {
-        if (response.success !== false) {
-          this.syncStatus = 'Synced successfully';
-          this.syncService.lastSyncStatus = 'success';
-          setTimeout(() => {
-            this.syncStatus = '';
-          }, 2000);
-        } else {
-          this.syncStatus = 'Sync failed';
-          this.syncService.lastSyncStatus = 'error';
-          setTimeout(() => {
-            this.syncStatus = '';
-          }, 3000);
-        }
-      }
-    });
-  }
 
   loadCompartments(): void {
     this.loading = true;
     this.form.get('compartment')?.disable();
-    this.dataService.getCompartments().subscribe({
-      next: (data) => {
-        this.compartments = data;
-        this.filteredCompartments = data;
-        this.loading = false;
-        this.form.get('compartment')?.enable();
-      },
-      error: (error) => {
-        console.error('Error loading compartments:', error);
-        this.loading = false;
-        this.form.get('compartment')?.enable();
-      }
+    // add IT_SERVICIU like comisar general
+    this.parentGroupPath =  true || this.parentGroupPath.includes("COMISARIAT_GENERAL") ? "partygnm" : this.parentGroupPath
+    this.gnmUserGroupService.getGroups(this.parentGroupPath).then(groups => {
+      this.compartments = groups;
+      this.filteredCompartments = groups;
+      this.loading = false;
+      this.form.get('compartment')?.enable();
+      this.form.controls.compartment.setValue(this.formProperty.value.compartment)
+
+      this.compartmentSearchTerm = this.translateLastGroup(this.formProperty.value.compartment)
     });
   }
 
   setupCompartmentListener(): void {
     this.form.get('compartment')?.valueChanges.subscribe((compartment) => {
       if (compartment) {
+        this.selectedCompartment = compartment;
         this.loadUsers(compartment);
         this.form.patchValue({ selectedUsers: [] });
       } else {
@@ -135,12 +123,18 @@ export class CompartmentUsers implements OnInit, OnDestroy {
 
   loadUsers(compartment: string): void {
     this.loadingUsers = true;
-    this.userSearchTerm = '';
-    this.dataService.getUsersByCompartment(compartment).subscribe({
+    this.userGroupControllerService.getUserGroupsUsingGET(undefined, 1000, undefined, undefined, null, null, "INTOCMITOR", "USER", compartment, false, undefined, 1000).subscribe({
       next: (data) => {
         this.users = data;
-        this.filteredUsers = data;
+        this.filteredUsers = data
         this.loadingUsers = false;
+        if (this.users.length === 1) {
+          this.form.patchValue({ selectedUsers: this.users });
+          this.formProperty.setValue(this.form.value, false);
+        }
+        if (compartment === this.formProperty.value.compartment) {
+          this.form.controls.selectedUsers.setValue(this.formProperty.value.selectedUsers)
+        }
       },
       error: (error) => {
         console.error('Error loading users:', error);
@@ -148,19 +142,35 @@ export class CompartmentUsers implements OnInit, OnDestroy {
       }
     });
   }
-
   toggleUser(user: UserGroup): void {
     const currentUsers: UserGroup[] = this.form.get('selectedUsers')?.value || [];
     const index = currentUsers.findIndex((u: UserGroup) => u.id === user.id);
-    
+
     let updatedUsers: UserGroup[];
     if (index > -1) {
       updatedUsers = currentUsers.filter((u: UserGroup) => u.id !== user.id);
     } else {
       updatedUsers = [...currentUsers, user];
     }
-    
+
     this.form.patchValue({ selectedUsers: updatedUsers });
+    this.formProperty.setValue(this.form.value, false);
+  }
+
+  getLastGroup(path: string): string {
+    return path?.substring(path.lastIndexOf('/') + 1);
+  }
+  translateLastGroup(path: string): string {
+
+    const last = this.getLastGroup(path)
+    const translated = this.translateService.instant('setTenantComponent.subTenants.' + last)
+
+    if (translated && !translated.includes('setTenantComponent')) {
+      return translated
+    } else {
+      return path
+    }
+
   }
 
   isUserSelected(user: UserGroup): boolean {
@@ -179,15 +189,26 @@ export class CompartmentUsers implements OnInit, OnDestroy {
       this.filteredCompartments = this.compartments;
     } else {
       const searchTerm = this.compartmentSearchTerm.toLowerCase();
-      this.filteredCompartments = this.compartments.filter(compartment =>
-        compartment.toLowerCase().includes(searchTerm)
-      );
+      this.filteredCompartments = this.compartments.filter(compartment => {
+        const last = this.getLastGroup(compartment);
+        const translated = this.translateService.instant(
+          'setTenantComponent.subTenants.' + last
+        ).toLowerCase();
+
+        if (translated && !translated.includes('setTenantComponent')) {
+          return translated.includes(searchTerm);
+        } else {
+          return compartment.includes(searchTerm);
+        }
+
+
+      });
     }
     this.showCompartmentDropdown = true;
   }
 
   selectCompartment(compartment: string): void {
-    this.compartmentSearchTerm = compartment;
+    this.compartmentSearchTerm = this.translateLastGroup(compartment);
     this.form.patchValue({ compartment: compartment });
     this.showCompartmentDropdown = false;
   }
@@ -206,7 +227,8 @@ export class CompartmentUsers implements OnInit, OnDestroy {
       if (exactMatch && this.form.get('compartment')?.value !== exactMatch) {
         this.selectCompartment(exactMatch);
       } else if (this.compartmentSearchTerm && !exactMatch) {
-        this.compartmentSearchTerm = this.form.get('compartment')?.value || '';
+        let compartment = this.form.get('compartment')?.value || '';
+        this.compartmentSearchTerm = this.translateLastGroup(compartment);
       }
     }, 200);
   }
@@ -232,7 +254,7 @@ export class CompartmentUsers implements OnInit, OnDestroy {
       const searchTerm = this.userSearchTerm.toLowerCase();
       this.filteredUsers = this.users.filter(user =>
         user.name.toLowerCase().includes(searchTerm) ||
-        user.email.toLowerCase().includes(searchTerm)
+        user.id.toLowerCase().includes(searchTerm)
       );
     }
   }
