@@ -1,15 +1,16 @@
-<div class="container">
-  <h2>Compartment and Users Selection</h2>
+
+<mat-spinner *ngIf="loading"></mat-spinner>
+<div class="container" *ngIf="!isReadOnly">
   
   <form [formGroup]="form">
     <div class="form-group">
-      <label for="compartment">Compartment *</label>
+      <label for="compartment">Compartiment *</label>
       <div class="autocomplete-wrapper">
         <input 
           type="text" 
           id="compartment"
           class="autocomplete-input" 
-          placeholder="Search and select a compartment..."
+          placeholder="Cauta si selecteaza un compartiment..."
           [(ngModel)]="compartmentSearchTerm"
           [ngModelOptions]="{standalone: true}"
           (ngModelChange)="filterCompartments()"
@@ -23,20 +24,20 @@
             *ngFor="let compartment of filteredCompartments" 
             class="autocomplete-item"
             (click)="selectCompartment(compartment)">
-            {{ compartment }}
+            {{ ('setTenantComponent.subTenants.' + getLastGroup(compartment)) | translate }}
           </div>
           <div class="autocomplete-no-results" *ngIf="filteredCompartments.length === 0">
-            No compartments found
+            Nu au fost gasite compartimente
           </div>
         </div>
       </div>
       <div class="error" *ngIf="form.get('compartment')?.invalid && form.get('compartment')?.touched">
-        Please select a compartment
+        Va rugam sa selectati un compartiment
       </div>
     </div>
 
     <div class="form-group" *ngIf="form.get('compartment')?.value">
-      <label>Users * (Select multiple)</label>
+      <label>Useri * (Selectare multipla)</label>
       
       <div class="selected-chips" *ngIf="form.value.selectedUsers.length > 0">
         <div class="chip" *ngFor="let user of form.value.selectedUsers">
@@ -50,7 +51,7 @@
       <input 
         type="text" 
         class="search-input" 
-        placeholder="Search users by name or email..."
+        placeholder="Cauta useri dupa nume sau email..."
         [(ngModel)]="userSearchTerm"
         [ngModelOptions]="{standalone: true}"
         (ngModelChange)="filterUsers()"
@@ -73,27 +74,15 @@
         </div>
       </div>
       <div class="search-results" *ngIf="!loadingUsers && userSearchTerm && filteredUsers.length === 0 && users.length > 0">
-        No users found matching your search
+        Nu au fost gasiti utilizatori
       </div>
       <div *ngIf="loadingUsers" class="loading">Loading users...</div>
       <div *ngIf="!loadingUsers && users.length === 0" class="no-data">
-        No users found for this compartment
+        Nu au fost gasiti utilizatori pentru acest compartiment.
       </div>
       <div class="error" *ngIf="form.get('selectedUsers')?.invalid && form.get('selectedUsers')?.touched">
-        Please select at least one user
+        Va rugam sa selectati cel putin un utilizator.
       </div>
     </div>
   </form>
-
-  <div class="sync-status" *ngIf="syncStatus">
-    <span class="sync-indicator" [class.syncing]="isSyncing" [class.success]="syncStatus.includes('success')" [class.error]="syncStatus.includes('failed')">
-      {{ syncStatus }}
-    </span>
-  </div>
-
-  <div class="form-value" *ngIf="form.value.compartment">
-    <h3>Current Selection:</h3>
-    <p><strong>Compartment:</strong> {{ form.value.compartment }}</p>
-    <p><strong>Selected Users:</strong> {{ form.value.selectedUsers.length }} user(s)</p>
-  </div>
 </div>
