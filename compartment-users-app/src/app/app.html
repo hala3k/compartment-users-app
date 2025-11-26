@@ -1,4 +1,9 @@
-<div style="padding: 2rem;">
-  <h1 style="text-align: center; margin-bottom: 2rem;">{{ title() }}</h1>
-  <app-compartment-users></app-compartment-users>
+<div class="app-container">
+  <header class="app-header">
+    <h1>{{ title() }}</h1>
+    <p class="subtitle">Selecteaza un compartiment pentru a vizualiza si gestiona utilizatorii</p>
+  </header>
+  <main class="app-main">
+    <app-compartment-users></app-compartment-users>
+  </main>
 </div>
