@@ -1,24 +1,8 @@
 <div class="forms-container">
-  <div class="sync-status" *ngIf="syncStatus !== 'idle'">
-    <span class="sync-indicator" [ngClass]="syncStatus">
-      {{ syncMessage }}
-    </span>
-  </div>
-
-  <div class="validation-status" [ngClass]="{'valid': isFormValid, 'invalid': !isFormValid}">
-    <span *ngIf="isFormValid">Formular valid - toate compartimentele au cel putin un utilizator</span>
-    <span *ngIf="!isFormValid">Formular invalid - fiecare compartiment trebuie sa aiba cel putin un utilizator</span>
-  </div>
-
-  <div class="form-card" *ngFor="let item of formItems; trackBy: trackByFormId" [ngClass]="{'valid-card': isItemValid(item), 'invalid-card': !isItemValid(item)}">
+  <div class="form-card" *ngFor="let item of formItems; trackBy: trackByFormId">
     <div class="form-header">
       <span class="form-title">Formular #{{ formItems.indexOf(item) + 1 }}</span>
-      <div class="form-header-right">
-        <span class="validity-badge" [ngClass]="{'valid': isItemValid(item), 'invalid': !isItemValid(item)}">
-          {{ isItemValid(item) ? 'Valid' : 'Incomplet' }}
-        </span>
-        <button type="button" class="btn-delete" (click)="removeFormItem(item.id)" *ngIf="formItems.length > 1">Sterge</button>
-      </div>
+      <button type="button" class="btn-delete" (click)="removeFormItem(item.id)">Sterge</button>
     </div>
 
     <form [formGroup]="item.form">
@@ -28,7 +12,6 @@
           <input 
             type="text" 
             class="autocomplete-input" 
-            [ngClass]="{'input-error': !item.form.get('compartment')?.value && item.form.get('compartment')?.touched}"
             placeholder="Cauta si selecteaza un compartiment..."
             [(ngModel)]="item.compartmentSearchTerm"
             [ngModelOptions]="{standalone: true}"
@@ -49,24 +32,21 @@
             </div>
           </div>
         </div>
-        <div class="error" *ngIf="!item.form.get('compartment')?.value && item.form.get('compartment')?.touched">
+        <div class="error" *ngIf="item.form.get('compartment')?.invalid && item.form.get('compartment')?.touched">
           Va rugam sa selectati un compartiment
         </div>
       </div>
 
       <div class="form-group" *ngIf="item.form.get('compartment')?.value">
-        <label>Utilizatori * (Selectare multipla - minim 1)</label>
+        <label>Utilizatori * (Selectare multipla)</label>
         
-        <div class="selected-chips" [ngClass]="{'chips-error': getSelectedUsers(item).length === 0}">
+        <div class="selected-chips" *ngIf="getSelectedUsers(item).length > 0">
           <div class="chip" *ngFor="let user of getSelectedUsers(item)">
             <span class="chip-text">{{ user.name }}</span>
             <button type="button" class="chip-remove" (click)="removeUser(item, user)" [title]="'Sterge ' + user.name">
               ×
             </button>
           </div>
-          <span class="chips-placeholder" *ngIf="getSelectedUsers(item).length === 0">
-            Niciun utilizator selectat
-          </span>
         </div>
         
         <input 
@@ -104,7 +84,7 @@
         <div *ngIf="!item.loadingUsers && item.users.length === 0 && item.form.get('compartment')?.value" class="no-data">
           Nu au fost gasiti utilizatori pentru acest compartiment.
         </div>
-        <div class="error" *ngIf="getSelectedUsers(item).length === 0 && item.form.get('compartment')?.value">
+        <div class="error" *ngIf="item.form.get('selectedUsers')?.invalid && item.form.get('selectedUsers')?.touched">
           Va rugam sa selectati cel putin un utilizator.
         </div>
       </div>
@@ -113,5 +93,13 @@
 
   <button type="button" class="btn-add" (click)="addFormItem()">
     + Adauga Formular Nou
+  </button>
+
+  <button 
+    type="button" 
+    class="btn-sync" 
+    *ngIf="hasSelectedUsers()"
+    (click)="syncAll()">
+    Sincronizeaza Toate Formularele
   </button>
 </div>
