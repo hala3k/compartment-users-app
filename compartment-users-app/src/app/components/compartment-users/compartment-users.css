@@ -3,12 +3,75 @@
   margin: 0 auto;
 }
 
+.sync-status {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.sync-indicator {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.sync-indicator.syncing {
+  background: #2196F3;
+  color: white;
+  animation: pulse 1.5s infinite;
+}
+
+.sync-indicator.success {
+  background: #4CAF50;
+  color: white;
+}
+
+.sync-indicator.error {
+  background: #f44336;
+  color: white;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.validation-status {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.validation-status.valid {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
+
+.validation-status.invalid {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
 .form-card {
   background: #f9f9f9;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 20px;
+  transition: border-color 0.3s;
+}
+
+.form-card.valid-card {
+  border-color: #4CAF50;
+}
+
+.form-card.invalid-card {
+  border-color: #ff9800;
 }
 
 .form-header {
@@ -24,6 +87,29 @@
   font-size: 1.1rem;
   font-weight: 600;
   color: #2196F3;
+}
+
+.form-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.validity-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.validity-badge.valid {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.validity-badge.invalid {
+  background: #fff3e0;
+  color: #e65100;
 }
 
 .btn-delete {
@@ -70,6 +156,10 @@ label {
   outline: none;
   border-color: #2196F3;
   box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.autocomplete-input.input-error {
+  border-color: #f44336;
 }
 
 .autocomplete-input:disabled {
@@ -128,7 +218,19 @@ label {
   background-color: white;
   border: 1px solid #ddd;
   border-radius: 4px;
-  min-height: 40px;
+  min-height: 44px;
+  align-items: center;
+}
+
+.selected-chips.chips-error {
+  border-color: #ff9800;
+  background-color: #fff8e1;
+}
+
+.chips-placeholder {
+  color: #999;
+  font-style: italic;
+  font-size: 0.9rem;
 }
 
 .chip {
@@ -293,21 +395,4 @@ label {
 .btn-add:hover {
   background: #e3f2fd;
   border-style: solid;
-}
-
-.btn-sync {
-  width: 100%;
-  padding: 14px;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-sync:hover {
-  background: #43a047;
 }

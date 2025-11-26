@@ -67,14 +67,44 @@ app.get('/api/users', (req, res) => {
   }, 500);
 });
 
+app.get('/api/initial-data', (req, res) => {
+  const initialData = {
+    forms: [
+      {
+        compartment: 'Engineering',
+        selectedUsers: [
+          usersData['Engineering'][0],
+          usersData['Engineering'][1]
+        ]
+      }
+    ]
+  };
+  
+  setTimeout(() => {
+    res.json(initialData);
+  }, 200);
+});
+
 app.post('/api/sync', async (req, res) => {
   const formState = req.body;
   
   console.log('\n=== Form State Sync ===');
   console.log('Timestamp:', formState.timestamp);
-  console.log('Compartment:', formState.compartment);
-  console.log('Selected Users:', formState.selectedUsers?.length || 0);
-  console.log('User Details:', JSON.stringify(formState.selectedUsers, null, 2));
+  console.log('Is Valid:', formState.isValid);
+  console.log('Number of Forms:', formState.forms?.length || 0);
+  
+  if (formState.forms) {
+    formState.forms.forEach((form, index) => {
+      console.log(`\nForm ${index + 1}:`);
+      console.log('  Compartment:', form.compartment);
+      console.log('  Selected Users:', form.selectedUsers?.length || 0);
+      if (form.selectedUsers) {
+        form.selectedUsers.forEach(user => {
+          console.log(`    - ${user.name} (${user.email})`);
+        });
+      }
+    });
+  }
   
   const externalApiUrl = process.env.EXTERNAL_API_URL;
   
