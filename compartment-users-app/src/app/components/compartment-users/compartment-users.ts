@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DataService, UserGroup } from '../../services/data';
 import { HttpClientModule } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 
 interface FormItem {
   id: number;
@@ -16,6 +17,7 @@ interface FormItem {
   showCompartmentDropdown: boolean;
   loading: boolean;
   loadingUsers: boolean;
+  subscriptions: Subscription[];
 }
 
 @Component({
@@ -25,7 +27,7 @@ interface FormItem {
   templateUrl: './compartment-users.html',
   styleUrls: ['./compartment-users.css']
 })
-export class CompartmentUsers implements OnInit {
+export class CompartmentUsers implements OnInit, OnDestroy {
   formItems: FormItem[] = [];
   private formIdCounter = 0;
   private allCompartments: string[] = [];
@@ -37,6 +39,12 @@ export class CompartmentUsers implements OnInit {
 
   ngOnInit(): void {
     this.loadCompartments();
+  }
+
+  ngOnDestroy(): void {
+    this.formItems.forEach(item => {
+      item.subscriptions.forEach(sub => sub.unsubscribe());
+    });
   }
 
   loadCompartments(): void {
@@ -69,13 +77,59 @@ export class CompartmentUsers implements OnInit {
       userSearchTerm: '',
       showCompartmentDropdown: false,
       loading: false,
-      loadingUsers: false
+      loadingUsers: false,
+      subscriptions: []
     };
 
+    this.setupFormSubscriptions(formItem);
     this.formItems.push(formItem);
   }
 
+  private setupFormSubscriptions(item: FormItem): void {
+    const compartmentSub = item.form.get('compartment')?.valueChanges.subscribe(value => {
+      console.log(`[Formular #${item.id}] Compartiment schimbat:`, {
+        formId: item.id,
+        controlName: 'compartment',
+        newValue: value,
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    const usersSub = item.form.get('selectedUsers')?.valueChanges.subscribe(value => {
+      console.log(`[Formular #${item.id}] Utilizatori selectati schimbati:`, {
+        formId: item.id,
+        controlName: 'selectedUsers',
+        newValue: value,
+        userCount: value?.length || 0,
+        userNames: value?.map((u: UserGroup) => u.name) || [],
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    const formSub = item.form.valueChanges.subscribe(value => {
+      console.log(`[Formular #${item.id}] Formular modificat:`, {
+        formId: item.id,
+        compartment: value.compartment,
+        selectedUsersCount: value.selectedUsers?.length || 0,
+        isValid: item.form.valid,
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    if (compartmentSub) item.subscriptions.push(compartmentSub);
+    if (usersSub) item.subscriptions.push(usersSub);
+    if (formSub) item.subscriptions.push(formSub);
+  }
+
   removeFormItem(itemId: number): void {
+    const item = this.formItems.find(i => i.id === itemId);
+    if (item) {
+      item.subscriptions.forEach(sub => sub.unsubscribe());
+      console.log(`[Formular #${itemId}] Formular sters`, {
+        formId: itemId,
+        timestamp: new Date().toISOString()
+      });
+    }
     this.formItems = this.formItems.filter(item => item.id !== itemId);
   }
 
